@@ -1,0 +1,52 @@
+- name: My first play
+  hosts: schoolpi
+  vars:
+    program_path: "/home/pi/button"
+  tasks:
+    - name: apt update
+      become: yes
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+    - name: Installing systemd
+      become: yes
+      apt:
+        name: systemd
+        state: present
+    - name: Installing python 3.10
+      become: yes
+      apt:
+        name: python3.10
+        state: present
+    - name: Copying the program
+      synchronize:
+        src: "{{ playbook_dir }}/../"
+        dest: "{{ program_path }}"
+        delete: true
+        recursive: true
+
+    - name: Linking service file
+      become: yes
+      file:
+        src: "{{ program_path }}/button.service"
+        dest: "/lib/systemd/system/button.service"
+        state: link
+    - name: Changing file premission
+      become: yes
+      file:
+        path: "/lib/systemd/system/button.service"
+        mode: 644
+    - name: Setting up service
+      become: yes
+      ansible.builtin.systemd:
+        daemon_reload: yes
+        name: button.service
+        enabled: true
+    - name: Starting service
+      become: yes
+      ansible.builtin.systemd:
+        daemon-reexec: yes
+        state: started
+        name: button.service
+    - name: Testing service
+      command: "service button status"

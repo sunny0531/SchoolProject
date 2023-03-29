@@ -1,0 +1,12 @@
+[Unit]
+Description=Start the button server
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart=/usr/bin/python3.10 /home/pi/button/python/main.py > /home/pi/button/button.log 2>&1
+WorkingDirectory=/home/pi
+User=pi
+
+[Install]
+WantedBy=multi-user.target

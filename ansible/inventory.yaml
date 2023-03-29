@@ -1,0 +1,5 @@
+schoolpi:
+  hosts:
+    pi:
+      ansible_host: raspberrypi
+      ansible_ssh_user: pi

@@ -1,5 +1,5 @@
 import json
-
+#abc
 from RPi import GPIO
 from flask import Flask, request, jsonify
 
@@ -15,7 +15,7 @@ GPIO.setmode(GPIO.BOARD)
 
 setup([green, yellow, red, blue], GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 button = Buttons(green, yellow, red, blue)
-with open("config.json") as f:
+with open("/home/pi/button/python/config.json") as f:
     _setting = Setting(**json.loads(f.read()))
     button.mail_setup(_setting.sender, _setting.password)
 add_event_detect([green, yellow, red, blue], GPIO.RISING, callback=button.pressed, bouncetime=300)
