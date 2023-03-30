@@ -1,4 +1,4 @@
-- name: My first play
+- name: Backend (Python)
   hosts: schoolpi
   vars:
     program_path: "/home/pi/button"
@@ -50,3 +50,71 @@
         name: button.service
     - name: Testing service
       command: "service button status"
+- name: UI (Flutter)
+  hosts: schoolpi
+  vars:
+    program_path: "/home/pi/button"
+  tasks:
+    - name: Installing build dependencies
+      become: yes
+      apt:
+        pkg:
+          - clang
+          - cmake
+          - build-essential
+          - pkg-config
+          - libegl1-mesa-dev
+          - libxkbcommon-dev
+          - libgles2-mesa-dev
+          - libwayland-dev
+          - wayland-protocols
+          - g++-multilib
+          - git
+          - python3
+          - curl
+    - name: Creates tools directory
+      file:
+        path: /home/pi/build_tools/
+        state: directory
+    - name: Cloning build tool
+      git:
+        repo: https://chromium.googlesource.com/chromium/tools/depot_tools.git
+        version: main
+        dest: /home/pi/build_tools/depot_tools
+    - name: Creates flutter directory
+      file:
+        path: /home/pi/flutter/
+        state: directory
+    - name: Linking gclient file
+      become: yes
+      file:
+        src: "{{ program_path }}/ansible/.gclient"
+        dest: "/home/pi/flutter/.gclient"
+        state: link
+    - name: Downloading flutter source code
+      command: chdir=/home/pi/flutter /home/pi/build_tools/depot_tools/gclient sync
+    - name: Preparing to build flutter
+      command:
+        args:
+          chdir: /home/pi/flutter/src
+        argv:
+          - ./flutter/tools/gn
+          - --target-os linux
+          - --linux-cpu arm64
+          - --runtime-mode release
+          - --embedder-for-target
+          - --disable-desktop-embeddings
+          - --no-build-embedder-examples
+          - --enable-fontconfig
+    - name: Building flutter
+      command:
+        args:
+          chdir: /home/pi/flutter/src
+        argv:
+          - ninja
+          - -C out/linux_release_arm64
+    - name: Linking embedded library
+      file:
+        src: "{{ program_path }}/ansible/.gclient"
+        dest: "/home/pi/flutter/.gclient"
+        state: link
